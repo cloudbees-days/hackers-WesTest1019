@@ -198,10 +198,10 @@ jobs:
       - name: Wait for Binary Scan Completion
         uses: docker://alpine:latest
         run: |
-          echo "⏰ Waiting 4 minutes for implicit binary scan to complete..."
+          echo "⏰ Waiting 90 seconds for implicit binary scan to complete..."
           echo "🔍 This ensures accurate vulnerability counts from the container image scan"
-          sleep 240
-          echo "✅ 4-minute wait completed - proceeding with security vulnerability check"
+          sleep 90
+          echo "✅ 90-second wait completed - proceeding with security vulnerability check"
       - name: Fetch Security Vulnerabilities
         id: fetch-vulns
         uses: docker://alpine:latest
@@ -329,7 +329,7 @@ jobs:
           format: MARKDOWN
   security-gate:
     needs: security-check
-    if: ${{ needs.security-check.outputs.gate_triggered == true && secrets.WES_1Time_Bypass != 'TRUE' }}
+    if: ${{ needs.security-check.outputs.gate_triggered == 'true' && secrets.WES_1Time_Bypass != 'TRUE' }}
     outputs:
       gate_status: ${{ steps.security-polling.outputs.gate_status }}
       final_very_high_count: ${{ steps.security-polling.outputs.final_very_high_count }}
