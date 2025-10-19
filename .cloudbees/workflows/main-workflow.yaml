@@ -199,8 +199,8 @@ jobs:
         uses: docker://alpine:latest
         run: |
           echo "🔍 BYPASS SECRET VALIDATION"
-          echo "WES_1Time_Bypass: '${{ secrets.WES_1Time_Bypass }}'"
-          echo "WES_1Time_Exception: '${{ secrets.WES_1Time_Exception }}'"
+          echo "WES_1Time_Bypass: '${{ vars.WES_1Time_Bypass }}'"
+          echo "WES_1Time_Exception: '${{ vars.WES_1Time_Exception }}'"
       - name: Wait for Binary Scan Completion
         uses: docker://alpine:latest
         run: |
@@ -217,7 +217,7 @@ jobs:
           SCAN_DATETIME=$(date '+%Y-%m-%d %H:%M:%S %Z')
 
           # Check bypass
-          if [ "${{ secrets.WES_1Time_Bypass }}" = "TRUE" ]; then
+          if [ "${{ vars.WES_1Time_Bypass }}" = "TRUE" ]; then
             echo "🚨 ONE-TIME SECURITY GATE BYPASS GRANTED!"
           else
             echo "✅ No bypass active - normal security gate enforcement"
@@ -286,16 +286,16 @@ jobs:
           echo "- LOW Vulnerabilities: $LOW_COUNT"
           echo "- TOTAL Vulnerabilities: $TOTAL_COUNT"
 
-          if [ "${{ secrets.WES_1Time_Bypass }}" = "TRUE" ]; then
+          if [ "${{ vars.WES_1Time_Bypass }}" = "TRUE" ]; then
             echo "- Security Gate: BYPASSED (Admin override)"
           else
             echo "- Security Gate Required: $([ "$GATE_TRIGGERED" = "true" ] && echo 'YES (Dual-threshold breach)' || echo 'NO (Within thresholds)')"
           fi
 
           echo "🎯 Deploy Job Advancement Conditions:"
-          echo "   - Bypass Active: $([ "${{ secrets.WES_1Time_Bypass }}" = "TRUE" ] && echo 'YES - Deploy allowed' || echo 'NO')"
+          echo "   - Bypass Active: $([ "${{ vars.WES_1Time_Bypass }}" = "TRUE" ] && echo 'YES - Deploy allowed' || echo 'NO')"
           echo "   - Gate Triggered: $([ "$GATE_TRIGGERED" = "true" ] && echo 'YES - Must pass security-gate' || echo 'NO - Deploy allowed')"
-          echo "   - Final Decision: $([ "${{ secrets.WES_1Time_Bypass }}" = "TRUE" ] && echo 'DEPLOY (bypass)' || ([ "$GATE_TRIGGERED" = "true" ] && echo 'SECURITY-GATE REQUIRED' || echo 'DEPLOY (passed)'))"
+          echo "   - Final Decision: $([ "${{ vars.WES_1Time_Bypass }}" = "TRUE" ] && echo 'DEPLOY (bypass)' || ([ "$GATE_TRIGGERED" = "true" ] && echo 'SECURITY-GATE REQUIRED' || echo 'DEPLOY (passed)'))"
 
       - name: Generate Enhanced Security Evidence Report
         uses: cloudbees-io/publish-evidence-item@v1
@@ -323,9 +323,9 @@ jobs:
             | **TOTAL** | ${{ steps.fetch-vulns.outputs.total_count }} | - | - |
 
             ## Deploy Job Advancement Analysis
-            - **Bypass Status:** ${{ secrets.WES_1Time_Bypass == 'TRUE' && 'ACTIVE - Deploy allowed immediately' || 'INACTIVE - Normal gate enforcement' }}
+            - **Bypass Status:** ${{ vars.WES_1Time_Bypass == 'TRUE' && 'ACTIVE - Deploy allowed immediately' || 'INACTIVE - Normal gate enforcement' }}
             - **Gate Status:** ${{ steps.fetch-vulns.outputs.gate_triggered == 'true' && 'TRIGGERED - Security gate required' || 'PASSED - Deploy allowed' }}
-            - **Final Decision:** ${{ secrets.WES_1Time_Bypass == 'TRUE' && 'DEPLOY (bypass override)' || (steps.fetch-vulns.outputs.gate_triggered == 'true' && 'SECURITY-GATE POLLING REQUIRED' || 'DEPLOY (thresholds met)') }}
+            - **Final Decision:** ${{ vars.WES_1Time_Bypass == 'TRUE' && 'DEPLOY (bypass override)' || (steps.fetch-vulns.outputs.gate_triggered == 'true' && 'SECURITY-GATE POLLING REQUIRED' || 'DEPLOY (thresholds met)') }}
 
             ## Enhanced Risk Assessment
             - **Critical Risk**: ${{ steps.fetch-vulns.outputs.very_high_count }} Very High vulnerabilities (4+ triggers gate)
@@ -335,7 +335,7 @@ jobs:
           format: MARKDOWN
   security-gate:
     needs: security-check
-    if: ${{ needs.security-check.outputs.gate_triggered == 'true' && secrets.WES_1Time_Bypass == 'FALSE' }}
+    if: ${{ needs.security-check.outputs.gate_triggered == 'true' && vars.WES_1Time_Bypass == 'FALSE' }}
     outputs:
       gate_status: ${{ steps.security-polling.outputs.gate_status }}
       final_very_high_count: ${{ steps.security-polling.outputs.final_very_high_count }}
@@ -437,7 +437,7 @@ jobs:
           if [ "$GATE_STATUS" = "FAILED" ]; then
             echo ""
             echo "🔍 Checking One-Time Vulnerability Exception..."
-            if [ "${{ secrets.WES_1Time_Exception }}" = "TRUE" ]; then
+            if [ "${{ vars.WES_1Time_Exception }}" = "TRUE" ]; then
               echo "🚨 ONE-TIME VULNERABILITY EXCEPTION GRANTED!"
               echo "Security gate bypassed by administrative override"
               echo "🎯 Deploy Job Status: UNBLOCKED - Exception override active"
