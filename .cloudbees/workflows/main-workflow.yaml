@@ -335,7 +335,7 @@ jobs:
           format: MARKDOWN
   security-gate:
     needs: security-check
-    if: ${{ needs.security-check.outputs.gate_triggered == 'true' && vars.WES_1Time_Bypass == 'FALSE' }}
+    if: ${{ needs.security-check.outputs.gate_triggered == 'true' && vars.WES_1Time_Bypass != 'TRUE' }}
     outputs:
       gate_status: ${{ steps.security-polling.outputs.gate_status }}
       final_very_high_count: ${{ steps.security-polling.outputs.final_very_high_count }}
