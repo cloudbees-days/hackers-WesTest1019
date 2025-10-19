@@ -195,6 +195,12 @@ jobs:
       scan_datetime: ${{ steps.fetch-vulns.outputs.scan_datetime }}
       gate_triggered: ${{ steps.fetch-vulns.outputs.gate_triggered }}
     steps:
+      - name: Validate Bypass Secret Values
+        uses: docker://alpine:latest
+        run: |
+          echo "🔍 BYPASS SECRET VALIDATION"
+          echo "WES_1Time_Bypass: '${{ secrets.WES_1Time_Bypass }}'"
+          echo "WES_1Time_Exception: '${{ secrets.WES_1Time_Exception }}'"
       - name: Wait for Binary Scan Completion
         uses: docker://alpine:latest
         run: |
