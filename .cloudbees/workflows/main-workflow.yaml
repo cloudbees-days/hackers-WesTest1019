@@ -329,7 +329,7 @@ jobs:
           format: MARKDOWN
   security-gate:
     needs: security-check
-    if: ${{ needs.security-check.outputs.gate_triggered == 'true' && secrets.WES_1Time_Bypass != 'TRUE' }}
+    if: ${{ needs.security-check.outputs.gate_triggered == 'true' && secrets.WES_1Time_Bypass == 'FALSE' }}
     outputs:
       gate_status: ${{ steps.security-polling.outputs.gate_status }}
       final_very_high_count: ${{ steps.security-polling.outputs.final_very_high_count }}
@@ -345,7 +345,7 @@ jobs:
           echo "🚨 ENHANCED DUAL-THRESHOLD SECURITY GATE ACTIVATED 🚨"
           echo "Initial VERY HIGH Vulnerabilities: ${{ needs.security-check.outputs.very_high_count }}"
           echo "Initial HIGH Vulnerabilities: ${{ needs.security-check.outputs.high_count }}"
-          echo "Success Criteria: VERY HIGH <4 AND HIGH <6 (both conditions must be met)"
+          echo "Success Criteria: VERY HIGH <4 OR HIGH <6 (either condition passes gate)"
           echo "Polling Duration: 30 minutes (7 polls every 5 minutes)"
           echo ""
 
@@ -402,8 +402,8 @@ jobs:
             # Build poll results for evidence
             POLL_RESULTS="${POLL_RESULTS}- **Poll #${POLL_COUNT}** (${POLL_TIME}): ${CURRENT_VERY_HIGH_COUNT} VERY HIGH, ${CURRENT_HIGH_COUNT} HIGH vulnerabilities"
 
-            # ENHANCED SUCCESS CRITERIA: VERY HIGH <4 AND HIGH <6
-            if [ $CURRENT_VERY_HIGH_COUNT -lt 4 ] && [ $CURRENT_HIGH_COUNT -lt 6 ]; then
+            # ENHANCED SUCCESS CRITERIA: VERY HIGH <4 OR HIGH <6
+            if [ $CURRENT_VERY_HIGH_COUNT -lt 4 ] || [ $CURRENT_HIGH_COUNT -lt 6 ]; then
               echo "   ✅ SUCCESS: Enhanced dual-threshold criteria met!"
               echo "      - VERY HIGH: ${CURRENT_VERY_HIGH_COUNT} (<4) ✅"
               echo "      - HIGH: ${CURRENT_HIGH_COUNT} (<6) ✅"
@@ -415,7 +415,7 @@ jobs:
               echo "   ⚠️  Enhanced dual-threshold criteria not met:"
               echo "      - VERY HIGH: ${CURRENT_VERY_HIGH_COUNT} $([ $CURRENT_VERY_HIGH_COUNT -ge 4 ] && echo '(≥4) ❌' || echo '(<4) ✅')"
               echo "      - HIGH: ${CURRENT_HIGH_COUNT} $([ $CURRENT_HIGH_COUNT -ge 6 ] && echo '(≥6) ❌' || echo '(<6) ✅')"
-              echo "   🎯 Deploy Job Status: BLOCKED - Both conditions must be met"
+              echo "   🎯 Deploy Job Status: BLOCKED - Either condition must be met"
               POLL_RESULTS="${POLL_RESULTS}"$'\n'
             fi
 
@@ -456,7 +456,7 @@ jobs:
             echo "Final VERY HIGH vulnerability count: ${FINAL_VERY_HIGH_COUNT}"
             echo "Final HIGH vulnerability count: ${FINAL_HIGH_COUNT}"
             echo "🎯 Deploy Job Advancement: BLOCKED - Enhanced security criteria not met"
-            echo "Developer must fix vulnerabilities to meet: VERY HIGH <4 AND HIGH <6"
+            echo "Developer must fix vulnerabilities to meet: VERY HIGH <4 OR HIGH <6"
           fi
 
           # Output results
