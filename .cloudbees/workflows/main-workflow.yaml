@@ -195,6 +195,13 @@ jobs:
       scan_datetime: ${{ steps.fetch-vulns.outputs.scan_datetime }}
       gate_triggered: ${{ steps.fetch-vulns.outputs.gate_triggered }}
     steps:
+      - name: Wait for Binary Scan Completion
+        uses: docker://alpine:latest
+        run: |
+          echo "⏰ Waiting 4 minutes for implicit binary scan to complete..."
+          echo "🔍 This ensures accurate vulnerability counts from the container image scan"
+          sleep 240
+          echo "✅ 4-minute wait completed - proceeding with security vulnerability check"
       - name: Fetch Security Vulnerabilities
         id: fetch-vulns
         uses: docker://alpine:latest
