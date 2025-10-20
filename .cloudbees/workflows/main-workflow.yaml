@@ -187,6 +187,7 @@ jobs:
     outputs:
       bypass_active: ${{ steps.bypass-check.outputs.bypass_active }}
       scan_status: ${{ steps.bypass-check.outputs.scan_status }}
+      gate_triggered: ${{ steps.fetch-vulns.outputs.gate_triggered || steps.bypass-check.outputs.gate_triggered }}
       vuln_count: ${{ steps.fetch-vulns.outputs.vuln_count }}
       severity_level: ${{ steps.fetch-vulns.outputs.severity_level }}
       very_high_count: ${{ steps.fetch-vulns.outputs.very_high_count }}
@@ -195,7 +196,6 @@ jobs:
       low_count: ${{ steps.fetch-vulns.outputs.low_count }}
       total_count: ${{ steps.fetch-vulns.outputs.total_count }}
       scan_datetime: ${{ steps.fetch-vulns.outputs.scan_datetime }}
-      gate_triggered: ${{ steps.fetch-vulns.outputs.gate_triggered }}
     steps:
       - name: Validate Bypass Secret Values
         uses: docker://alpine:latest
@@ -217,6 +217,7 @@ jobs:
           else
             echo "✅ No bypass active - performing security vulnerability scanning"
             echo "false" > $CLOUDBEES_OUTPUTS/bypass_active
+            echo "false" > $CLOUDBEES_OUTPUTS/gate_triggered
             echo "SCANNING" > $CLOUDBEES_OUTPUTS/scan_status
           fi
       - name: Wait for Binary Scan Completion
