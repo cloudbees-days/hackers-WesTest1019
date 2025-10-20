@@ -210,9 +210,9 @@ jobs:
           if [ "${{ vars.WES_1Time_Bypass }}" = "TRUE" ]; then
             echo "🚨 ONE-TIME SECURITY GATE BYPASS GRANTED!"
             echo "Skipping all vulnerability scanning - proceeding directly to deployment"
-            echo "true" > $CLOUDBEES_OUTPUTS/bypass_active
-            echo "false" > $CLOUDBEES_OUTPUTS/gate_triggered
-            echo "BYPASSED" > $CLOUDBEES_OUTPUTS/scan_status
+            echo -n "true" > $CLOUDBEES_OUTPUTS/bypass_active
+            echo -n "false" > $CLOUDBEES_OUTPUTS/gate_triggered
+            echo -n "BYPASSED" > $CLOUDBEES_OUTPUTS/scan_status
             echo "🔧 DEBUG: bypass-check step outputs (BYPASS ACTIVE):"
             echo "   - bypass_active: true"
             echo "   - gate_triggered: false"
@@ -220,9 +220,9 @@ jobs:
             exit 0
           else
             echo "✅ No bypass active - performing security vulnerability scanning"
-            echo "false" > $CLOUDBEES_OUTPUTS/bypass_active
-            echo "false" > $CLOUDBEES_OUTPUTS/gate_triggered
-            echo "SCANNING" > $CLOUDBEES_OUTPUTS/scan_status
+            echo -n "false" > $CLOUDBEES_OUTPUTS/bypass_active
+            echo -n "false" > $CLOUDBEES_OUTPUTS/gate_triggered
+            echo -n "SCANNING" > $CLOUDBEES_OUTPUTS/scan_status
             echo "🔧 DEBUG: bypass-check step outputs:"
             echo "   - bypass_active: false"
             echo "   - gate_triggered: false"
@@ -291,15 +291,15 @@ jobs:
           fi
 
           # Output results
-          echo "$HIGH_COUNT" > $CLOUDBEES_OUTPUTS/vuln_count
-          echo "$VERY_HIGH_COUNT" > $CLOUDBEES_OUTPUTS/very_high_count
-          echo "$HIGH_COUNT" > $CLOUDBEES_OUTPUTS/high_count
-          echo "$MEDIUM_COUNT" > $CLOUDBEES_OUTPUTS/medium_count
-          echo "$LOW_COUNT" > $CLOUDBEES_OUTPUTS/low_count
-          echo "$TOTAL_COUNT" > $CLOUDBEES_OUTPUTS/total_count
-          echo "$SCAN_DATETIME" > $CLOUDBEES_OUTPUTS/scan_datetime
-          echo "HIGH" > $CLOUDBEES_OUTPUTS/severity_level
-          echo "$GATE_TRIGGERED" > $CLOUDBEES_OUTPUTS/gate_triggered
+          echo -n "$HIGH_COUNT" > $CLOUDBEES_OUTPUTS/vuln_count
+          echo -n "$VERY_HIGH_COUNT" > $CLOUDBEES_OUTPUTS/very_high_count
+          echo -n "$HIGH_COUNT" > $CLOUDBEES_OUTPUTS/high_count
+          echo -n "$MEDIUM_COUNT" > $CLOUDBEES_OUTPUTS/medium_count
+          echo -n "$LOW_COUNT" > $CLOUDBEES_OUTPUTS/low_count
+          echo -n "$TOTAL_COUNT" > $CLOUDBEES_OUTPUTS/total_count
+          echo -n "$SCAN_DATETIME" > $CLOUDBEES_OUTPUTS/scan_datetime
+          echo -n "HIGH" > $CLOUDBEES_OUTPUTS/severity_level
+          echo -n "$GATE_TRIGGERED" > $CLOUDBEES_OUTPUTS/gate_triggered
 
           echo "🔧 DEBUG: fetch-vulns step outputs:"
           echo "   - gate_triggered: $GATE_TRIGGERED"
@@ -386,11 +386,11 @@ jobs:
           if [ "${{ vars.WES_1Time_Bypass }}" = "TRUE" ]; then
             echo "🚨 ONE-TIME SECURITY GATE BYPASS GRANTED!"
             echo "Bypassing security gate entirely - proceeding directly to deployment"
-            echo "true" > $CLOUDBEES_OUTPUTS/bypass_active
-            echo "PASSED" > $CLOUDBEES_OUTPUTS/gate_status
-            echo "0" > $CLOUDBEES_OUTPUTS/final_very_high_count
-            echo "0" > $CLOUDBEES_OUTPUTS/final_high_count
-            echo "- **BYPASS GRANTED**: One-time security gate bypass applied - gate skipped entirely" > $CLOUDBEES_OUTPUTS/poll_results
+            echo -n "true" > $CLOUDBEES_OUTPUTS/bypass_active
+            echo -n "PASSED" > $CLOUDBEES_OUTPUTS/gate_status
+            echo -n "0" > $CLOUDBEES_OUTPUTS/final_very_high_count
+            echo -n "0" > $CLOUDBEES_OUTPUTS/final_high_count
+            echo -n "- **BYPASS GRANTED**: One-time security gate bypass applied - gate skipped entirely" > $CLOUDBEES_OUTPUTS/poll_results
             exit 0
           fi
           
@@ -398,19 +398,19 @@ jobs:
           if [ "${{ vars.WES_1Time_Exception }}" = "TRUE" ]; then
             echo "🚨 ONE-TIME VULNERABILITY EXCEPTION GRANTED!"
             echo "Bypassing 30-minute security gate - proceeding directly to deployment"
-            echo "false" > $CLOUDBEES_OUTPUTS/bypass_active
-            echo "true" > $CLOUDBEES_OUTPUTS/exception_active
-            echo "PASSED" > $CLOUDBEES_OUTPUTS/gate_status
-            echo "0" > $CLOUDBEES_OUTPUTS/final_very_high_count
-            echo "0" > $CLOUDBEES_OUTPUTS/final_high_count
-            echo "- **EXCEPTION GRANTED**: One-time vulnerability exception applied - 30-minute gate bypassed" > $CLOUDBEES_OUTPUTS/poll_results
+            echo -n "false" > $CLOUDBEES_OUTPUTS/bypass_active
+            echo -n "true" > $CLOUDBEES_OUTPUTS/exception_active
+            echo -n "PASSED" > $CLOUDBEES_OUTPUTS/gate_status
+            echo -n "0" > $CLOUDBEES_OUTPUTS/final_very_high_count
+            echo -n "0" > $CLOUDBEES_OUTPUTS/final_high_count
+            echo -n "- **EXCEPTION GRANTED**: One-time vulnerability exception applied - 30-minute gate bypassed" > $CLOUDBEES_OUTPUTS/poll_results
             exit 0
           fi
           
           # No overrides active - proceed with normal security gate
           echo "✅ No bypass or exception active - proceeding with 30-minute security gate polling"
-          echo "false" > $CLOUDBEES_OUTPUTS/bypass_active
-          echo "false" > $CLOUDBEES_OUTPUTS/exception_active
+          echo -n "false" > $CLOUDBEES_OUTPUTS/bypass_active
+          echo -n "false" > $CLOUDBEES_OUTPUTS/exception_active
       - name: Enhanced Dual-Threshold Security Gate Polling
         if: ${{ steps.override-check.outputs.bypass_active != 'true' && steps.override-check.outputs.exception_active != 'true' }}
         id: security-polling
@@ -519,10 +519,10 @@ jobs:
           fi
 
           # Output results
-          echo "$GATE_STATUS" > $CLOUDBEES_OUTPUTS/gate_status
-          echo "$FINAL_VERY_HIGH_COUNT" > $CLOUDBEES_OUTPUTS/final_very_high_count
-          echo "$FINAL_HIGH_COUNT" > $CLOUDBEES_OUTPUTS/final_high_count
-          echo "$POLL_RESULTS" > $CLOUDBEES_OUTPUTS/poll_results
+          echo -n "$GATE_STATUS" > $CLOUDBEES_OUTPUTS/gate_status
+          echo -n "$FINAL_VERY_HIGH_COUNT" > $CLOUDBEES_OUTPUTS/final_very_high_count
+          echo -n "$FINAL_HIGH_COUNT" > $CLOUDBEES_OUTPUTS/final_high_count
+          echo -n "$POLL_RESULTS" > $CLOUDBEES_OUTPUTS/poll_results
 
           # Exit with error if gate failed
           if [ "$GATE_STATUS" = "FAILED" ]; then
