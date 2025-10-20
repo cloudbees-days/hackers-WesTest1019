@@ -373,9 +373,9 @@ jobs:
     outputs:
       bypass_active: ${{ steps.override-check.outputs.bypass_active }}
       exception_active: ${{ steps.override-check.outputs.exception_active }}
-      gate_status: ${{ steps.override-check.outputs.gate_status || steps.security-polling.outputs.gate_status }}
-      final_very_high_count: ${{ steps.override-check.outputs.final_very_high_count || steps.security-polling.outputs.final_very_high_count }}
-      final_high_count: ${{ steps.override-check.outputs.final_high_count || steps.security-polling.outputs.final_high_count }}
+      gate_status: ${{ steps.security-polling.outputs.gate_status }}
+      final_very_high_count: ${{ steps.security-polling.outputs.final_very_high_count }}
+      final_high_count: ${{ steps.security-polling.outputs.final_high_count }}
       poll_results: ${{ steps.security-polling.outputs.poll_results }}
     steps:
       - name: Check Bypass and Exception Overrides
