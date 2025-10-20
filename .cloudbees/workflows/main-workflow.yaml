@@ -371,12 +371,12 @@ jobs:
     needs: security-check
     if: ${{ needs.security-check.outputs.gate_triggered == 'true' }}
     outputs:
-      bypass_active: ${{ steps.override-check.outputs.bypass_active }}
-      exception_active: ${{ steps.override-check.outputs.exception_active }}
-      gate_status: ${{ steps.override-check.outputs.gate_status || steps.security-polling.outputs.gate_status }}
-      final_very_high_count: ${{ steps.override-check.outputs.final_very_high_count || steps.security-polling.outputs.final_very_high_count }}
-      final_high_count: ${{ steps.override-check.outputs.final_high_count || steps.security-polling.outputs.final_high_count }}
-      poll_results: ${{ steps.override-check.outputs.poll_results || steps.security-polling.outputs.poll_results }}
+      bypass_active: ${{ steps.override-check.outputs.bypass_active || 'false' }}
+      exception_active: ${{ steps.override-check.outputs.exception_active || 'false' }}
+      gate_status: ${{ steps.override-check.outputs.gate_status || steps.security-polling.outputs.gate_status || 'FAILED' }}
+      final_very_high_count: ${{ steps.override-check.outputs.final_very_high_count || steps.security-polling.outputs.final_very_high_count || '0' }}
+      final_high_count: ${{ steps.override-check.outputs.final_high_count || steps.security-polling.outputs.final_high_count || '0' }}
+      poll_results: ${{ steps.override-check.outputs.poll_results || steps.security-polling.outputs.poll_results || 'No polling results available' }}
     steps:
       - name: Check Bypass and Exception Overrides
         id: override-check
