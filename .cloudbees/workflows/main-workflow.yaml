@@ -187,7 +187,7 @@ jobs:
     outputs:
       bypass_active: ${{ steps.bypass-check.outputs.bypass_active }}
       scan_status: ${{ steps.bypass-check.outputs.scan_status }}
-      gate_triggered: ${{ steps.fetch-vulns.outputs.gate_triggered || steps.bypass-check.outputs.gate_triggered }}
+      gate_triggered: ${{ steps.fetch-vulns.outputs.gate_triggered }}
       vuln_count: ${{ steps.fetch-vulns.outputs.vuln_count }}
       severity_level: ${{ steps.fetch-vulns.outputs.severity_level }}
       very_high_count: ${{ steps.fetch-vulns.outputs.very_high_count }}
@@ -213,12 +213,20 @@ jobs:
             echo "true" > $CLOUDBEES_OUTPUTS/bypass_active
             echo "false" > $CLOUDBEES_OUTPUTS/gate_triggered
             echo "BYPASSED" > $CLOUDBEES_OUTPUTS/scan_status
+            echo "🔧 DEBUG: bypass-check step outputs (BYPASS ACTIVE):"
+            echo "   - bypass_active: true"
+            echo "   - gate_triggered: false"
+            echo "   - scan_status: BYPASSED"
             exit 0
           else
             echo "✅ No bypass active - performing security vulnerability scanning"
             echo "false" > $CLOUDBEES_OUTPUTS/bypass_active
             echo "false" > $CLOUDBEES_OUTPUTS/gate_triggered
             echo "SCANNING" > $CLOUDBEES_OUTPUTS/scan_status
+            echo "🔧 DEBUG: bypass-check step outputs:"
+            echo "   - bypass_active: false"
+            echo "   - gate_triggered: false"
+            echo "   - scan_status: SCANNING"
           fi
       - name: Wait for Binary Scan Completion
         if: ${{ steps.bypass-check.outputs.bypass_active != 'true' }}
@@ -293,6 +301,12 @@ jobs:
           echo "HIGH" > $CLOUDBEES_OUTPUTS/severity_level
           echo "$GATE_TRIGGERED" > $CLOUDBEES_OUTPUTS/gate_triggered
 
+          echo "🔧 DEBUG: fetch-vulns step outputs:"
+          echo "   - gate_triggered: $GATE_TRIGGERED"
+          echo "   - very_high_count: $VERY_HIGH_COUNT"
+          echo "   - high_count: $HIGH_COUNT"
+          echo "   - total_count: $TOTAL_COUNT"
+
           echo "🔍 Enhanced Security Scan Results:"
           echo "- VERY HIGH Vulnerabilities: $VERY_HIGH_COUNT"
           echo "- HIGH Vulnerabilities: $HIGH_COUNT"
@@ -345,6 +359,14 @@ jobs:
             - **Deploy Status:** {8}
             - **Required Action:** {9}', steps.fetch-vulns.outputs.total_count, steps.fetch-vulns.outputs.gate_triggered, steps.fetch-vulns.outputs.very_high_count, (steps.fetch-vulns.outputs.very_high_count >= 4 && '❌ BREACH' || '✅ SAFE'), steps.fetch-vulns.outputs.high_count, (steps.fetch-vulns.outputs.high_count >= 6 && '❌ BREACH' || '✅ SAFE'), steps.fetch-vulns.outputs.medium_count, steps.fetch-vulns.outputs.low_count, (steps.fetch-vulns.outputs.gate_triggered == 'true' && 'BLOCKED - Security gate required' || 'APPROVED - Deploy allowed'), (steps.fetch-vulns.outputs.gate_triggered == 'true' && 'Fix vulnerabilities to meet VERY HIGH <4 AND HIGH <6' || 'None - All conditions satisfied')) }}
           format: MARKDOWN
+      - name: Debug Final Job Outputs
+        uses: docker://alpine:latest
+        run: |
+          echo "🔧 DEBUG: Final security-check job outputs for security-gate condition:"
+          echo "   - needs.security-check.outputs.gate_triggered will be: '${{ steps.fetch-vulns.outputs.gate_triggered }}'"
+          echo "   - needs.security-check.outputs.bypass_active will be: '${{ steps.bypass-check.outputs.bypass_active }}'"
+          echo "   - Security-gate job condition: needs.security-check.outputs.gate_triggered == 'true'"
+          echo "   - Expected result: $([ '${{ steps.fetch-vulns.outputs.gate_triggered }}' = 'true' ] && echo 'TRUE - Job should run' || echo 'FALSE - Job will be skipped')"
   security-gate:
     needs: security-check
     if: ${{ needs.security-check.outputs.gate_triggered == 'true' }}
