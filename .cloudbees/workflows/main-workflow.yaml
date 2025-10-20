@@ -287,7 +287,7 @@ jobs:
             echo "✅ DUAL-THRESHOLD SECURITY GATE PASSED"
             echo "   - VERY HIGH: $VERY_HIGH_COUNT (<4)"
             echo "   - HIGH: $HIGH_COUNT (<6)"
-            echo "   - Gate Logic: VERY HIGH <4 AND HIGH <6"
+            echo "   - Gate Logic: VERY HIGH <4 OR HIGH <6"
           fi
 
           # Output results
@@ -343,7 +343,7 @@ jobs:
             ## Enhanced Dual-Threshold Security Logic
             **Gate Triggered:** {1}
             **Trigger Logic:** VERY HIGH ≥4 OR HIGH ≥6 activates 30-minute security gate
-            **Success Criteria:** VERY HIGH <4 AND HIGH <6 to proceed to deployment
+            **Success Criteria:** VERY HIGH <4 OR HIGH <6 to proceed to deployment
 
             ## Severity Breakdown with Thresholds
             | Severity | Count | Threshold | Status |
@@ -357,7 +357,7 @@ jobs:
             ## Deploy Job Advancement Analysis
             - **Gate Status:** {1}
             - **Deploy Status:** {8}
-            - **Required Action:** {9}', steps.fetch-vulns.outputs.total_count, steps.fetch-vulns.outputs.gate_triggered, steps.fetch-vulns.outputs.very_high_count, (steps.fetch-vulns.outputs.very_high_count >= 4 && '❌ BREACH' || '✅ SAFE'), steps.fetch-vulns.outputs.high_count, (steps.fetch-vulns.outputs.high_count >= 6 && '❌ BREACH' || '✅ SAFE'), steps.fetch-vulns.outputs.medium_count, steps.fetch-vulns.outputs.low_count, (steps.fetch-vulns.outputs.gate_triggered == 'true' && 'BLOCKED - Security gate required' || 'APPROVED - Deploy allowed'), (steps.fetch-vulns.outputs.gate_triggered == 'true' && 'Fix vulnerabilities to meet VERY HIGH <4 AND HIGH <6' || 'None - All conditions satisfied')) }}
+            - **Required Action:** {9}', steps.fetch-vulns.outputs.total_count, steps.fetch-vulns.outputs.gate_triggered, steps.fetch-vulns.outputs.very_high_count, (steps.fetch-vulns.outputs.very_high_count >= 4 && '❌ BREACH' || '✅ SAFE'), steps.fetch-vulns.outputs.high_count, (steps.fetch-vulns.outputs.high_count >= 6 && '❌ BREACH' || '✅ SAFE'), steps.fetch-vulns.outputs.medium_count, steps.fetch-vulns.outputs.low_count, (steps.fetch-vulns.outputs.gate_triggered == 'true' && 'BLOCKED - Security gate required' || 'APPROVED - Deploy allowed'), (steps.fetch-vulns.outputs.gate_triggered == 'true' && 'Fix vulnerabilities to meet VERY HIGH <4 OR HIGH <6' || 'None - All conditions satisfied')) }}
           format: MARKDOWN
       - name: Debug Final Job Outputs
         uses: docker://alpine:latest
@@ -421,7 +421,7 @@ jobs:
           echo "🚨 ENHANCED DUAL-THRESHOLD SECURITY GATE ACTIVATED 🚨"
           echo "Initial VERY HIGH Vulnerabilities: ${{ needs.security-check.outputs.very_high_count }}"
           echo "Initial HIGH Vulnerabilities: ${{ needs.security-check.outputs.high_count }}"
-          echo "Success Criteria: VERY HIGH <4 AND HIGH <6 (both conditions must be met)"
+          echo "Success Criteria: VERY HIGH <4 OR HIGH <6 (either condition passes gate)"
           echo "Polling Duration: 30 minutes (7 polls every 5 minutes)"
           echo ""
 
@@ -445,7 +445,7 @@ jobs:
 
           echo "🎯 Deploy Job Advancement Tracking:"
           echo "   - Current Status: BLOCKED (security-gate running)"
-          echo "   - Required for Deploy: VERY HIGH <4 AND HIGH <6"
+          echo "   - Required for Deploy: VERY HIGH <4 OR HIGH <6"
           echo ""
 
           # Polling loop - exactly 30 minutes with 5-minute intervals
@@ -477,8 +477,8 @@ jobs:
             # Build poll results for evidence
             POLL_RESULTS="${POLL_RESULTS}- **Poll #${POLL_COUNT}** (${POLL_TIME}): ${CURRENT_VERY_HIGH_COUNT} VERY HIGH, ${CURRENT_HIGH_COUNT} HIGH vulnerabilities"
 
-            # ENHANCED SUCCESS CRITERIA: VERY HIGH <4 AND HIGH <6
-            if [ $CURRENT_VERY_HIGH_COUNT -lt 4 ] && [ $CURRENT_HIGH_COUNT -lt 6 ]; then
+            # ENHANCED SUCCESS CRITERIA: VERY HIGH <4 OR HIGH <6
+            if [ $CURRENT_VERY_HIGH_COUNT -lt 4 ] || [ $CURRENT_HIGH_COUNT -lt 6 ]; then
               echo "   ✅ SUCCESS: Enhanced dual-threshold criteria met!"
               echo "      - VERY HIGH: ${CURRENT_VERY_HIGH_COUNT} (<4) ✅"
               echo "      - HIGH: ${CURRENT_HIGH_COUNT} (<6) ✅"
@@ -490,7 +490,7 @@ jobs:
               echo "   ⚠️  Enhanced dual-threshold criteria not met:"
               echo "      - VERY HIGH: ${CURRENT_VERY_HIGH_COUNT} $([ $CURRENT_VERY_HIGH_COUNT -ge 4 ] && echo '(≥4) ❌' || echo '(<4) ✅')"
               echo "      - HIGH: ${CURRENT_HIGH_COUNT} $([ $CURRENT_HIGH_COUNT -ge 6 ] && echo '(≥6) ❌' || echo '(<6) ✅')"
-              echo "   🎯 Deploy Job Status: BLOCKED - Both conditions must be met"
+              echo "   🎯 Deploy Job Status: BLOCKED - Either condition must be met"
               POLL_RESULTS="${POLL_RESULTS}"$'\n'
             fi
 
@@ -515,7 +515,7 @@ jobs:
             echo "Final VERY HIGH vulnerability count: ${FINAL_VERY_HIGH_COUNT}"
             echo "Final HIGH vulnerability count: ${FINAL_HIGH_COUNT}"
             echo "🎯 Deploy Job Advancement: BLOCKED - Enhanced security criteria not met"
-            echo "Developer must fix vulnerabilities to meet: VERY HIGH <4 AND HIGH <6"
+            echo "Developer must fix vulnerabilities to meet: VERY HIGH <4 OR HIGH <6"
           fi
 
           # Output results
@@ -543,14 +543,14 @@ jobs:
             **Polling Duration:** 30 minutes (7 polls every 5 minutes)
 
             ## Enhanced Dual-Threshold Security Logic
-            **Success Criteria:** VERY HIGH <4 AND HIGH <6 (both conditions must be met)
+            **Success Criteria:** VERY HIGH <4 OR HIGH <6 (either condition passes gate)
             **Gate Trigger:** VERY HIGH ≥4 OR HIGH ≥6 (either condition triggers gate)
             **Flexible Remediation:** Developers can focus on either vulnerability type for fastest resolution
 
             ## Deploy Job Advancement Analysis
             - **Gate Result:** ${{ steps.security-polling.outputs.gate_status }}
             - **Deploy Status:** ${{ steps.security-polling.outputs.gate_status == 'PASSED' && 'APPROVED - Deploy job can proceed' || 'BLOCKED - Enhanced security criteria not met' }}
-            - **Required Action:** ${{ steps.security-polling.outputs.gate_status == 'PASSED' && 'None - All conditions satisfied' || 'Fix vulnerabilities to meet VERY HIGH <4 AND HIGH <6' }}
+            - **Required Action:** ${{ steps.security-polling.outputs.gate_status == 'PASSED' && 'None - All conditions satisfied' || 'Fix vulnerabilities to meet VERY HIGH <4 OR HIGH <6' }}
 
             ## Polling Timeline
             ${{ steps.security-polling.outputs.poll_results }}
