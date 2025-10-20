@@ -346,33 +346,50 @@ jobs:
           format: MARKDOWN
   security-gate:
     needs: security-check
-    if: ${{ needs.security-check.outputs.gate_triggered == 'true' && needs.security-check.outputs.bypass_active != 'true' }}
+    if: ${{ needs.security-check.outputs.gate_triggered == 'true' }}
     outputs:
-      exception_active: ${{ steps.exception-check.outputs.exception_active }}
-      gate_status: ${{ steps.exception-check.outputs.gate_status || steps.security-polling.outputs.gate_status }}
-      final_very_high_count: ${{ steps.exception-check.outputs.final_very_high_count || steps.security-polling.outputs.final_very_high_count }}
-      final_high_count: ${{ steps.exception-check.outputs.final_high_count || steps.security-polling.outputs.final_high_count }}
-      poll_results: ${{ steps.exception-check.outputs.poll_results || steps.security-polling.outputs.poll_results }}
+      bypass_active: ${{ steps.override-check.outputs.bypass_active }}
+      exception_active: ${{ steps.override-check.outputs.exception_active }}
+      gate_status: ${{ steps.override-check.outputs.gate_status || steps.security-polling.outputs.gate_status }}
+      final_very_high_count: ${{ steps.override-check.outputs.final_very_high_count || steps.security-polling.outputs.final_very_high_count }}
+      final_high_count: ${{ steps.override-check.outputs.final_high_count || steps.security-polling.outputs.final_high_count }}
+      poll_results: ${{ steps.override-check.outputs.poll_results || steps.security-polling.outputs.poll_results }}
     steps:
-      - name: Check Exception Override
-        id: exception-check
+      - name: Check Bypass and Exception Overrides
+        id: override-check
         uses: docker://alpine:latest
         run: |
+          # Check bypass first
+          if [ "${{ vars.WES_1Time_Bypass }}" = "TRUE" ]; then
+            echo "🚨 ONE-TIME SECURITY GATE BYPASS GRANTED!"
+            echo "Bypassing security gate entirely - proceeding directly to deployment"
+            echo "true" > $CLOUDBEES_OUTPUTS/bypass_active
+            echo "PASSED" > $CLOUDBEES_OUTPUTS/gate_status
+            echo "0" > $CLOUDBEES_OUTPUTS/final_very_high_count
+            echo "0" > $CLOUDBEES_OUTPUTS/final_high_count
+            echo "- **BYPASS GRANTED**: One-time security gate bypass applied - gate skipped entirely" > $CLOUDBEES_OUTPUTS/poll_results
+            exit 0
+          fi
+          
+          # Check exception second
           if [ "${{ vars.WES_1Time_Exception }}" = "TRUE" ]; then
             echo "🚨 ONE-TIME VULNERABILITY EXCEPTION GRANTED!"
             echo "Bypassing 30-minute security gate - proceeding directly to deployment"
+            echo "false" > $CLOUDBEES_OUTPUTS/bypass_active
             echo "true" > $CLOUDBEES_OUTPUTS/exception_active
             echo "PASSED" > $CLOUDBEES_OUTPUTS/gate_status
             echo "0" > $CLOUDBEES_OUTPUTS/final_very_high_count
             echo "0" > $CLOUDBEES_OUTPUTS/final_high_count
             echo "- **EXCEPTION GRANTED**: One-time vulnerability exception applied - 30-minute gate bypassed" > $CLOUDBEES_OUTPUTS/poll_results
             exit 0
-          else
-            echo "✅ No exception active - proceeding with 30-minute security gate polling"
-            echo "false" > $CLOUDBEES_OUTPUTS/exception_active
           fi
+          
+          # No overrides active - proceed with normal security gate
+          echo "✅ No bypass or exception active - proceeding with 30-minute security gate polling"
+          echo "false" > $CLOUDBEES_OUTPUTS/bypass_active
+          echo "false" > $CLOUDBEES_OUTPUTS/exception_active
       - name: Enhanced Dual-Threshold Security Gate Polling
-        if: ${{ steps.exception-check.outputs.exception_active != 'true' }}
+        if: ${{ steps.override-check.outputs.bypass_active != 'true' && steps.override-check.outputs.exception_active != 'true' }}
         id: security-polling
         uses: docker://alpine:latest
         run: |
